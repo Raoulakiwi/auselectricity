@@ -1,0 +1,31 @@
+{
+  "aemo": {
+    "status": "inaccessible",
+    "error": "HTTP 403"
+  },
+  "opennem": {
+    "status": "inaccessible",
+    "error": "HTTP 404"
+  },
+  "seqwater": {
+    "status": "accessible",
+    "main_page": true,
+    "specific_dams": true
+  },
+  "waternsw": {
+    "status": "accessible",
+    "api_available": true
+  },
+  "melbourne_water": {
+    "status": "inaccessible",
+    "error": "HTTP 404"
+  },
+  "sa_water": {
+    "status": "accessible",
+    "data_elements": 0
+  },
+  "hydro_tasmania": {
+    "status": "accessible",
+    "table_rows": 49
+  }
+}
