@@ -13,6 +13,10 @@ def main():
     backend_dir = Path(__file__).parent / "backend"
     sys.path.insert(0, str(backend_dir))
     
+    # Railway environment configuration
+    port = int(os.getenv("PORT", 8000))
+    host = os.getenv("HOST", "0.0.0.0")
+    
     # Set environment variables
     os.environ.setdefault("DATABASE_URL", "sqlite:///./electricity_data.db")
     
@@ -22,15 +26,18 @@ def main():
         import uvicorn
         
         print("🚀 Starting Australian Electricity Market Dashboard API...")
-        print("📊 Dashboard will be available at: http://localhost:8000")
-        print("📖 API documentation at: http://localhost:8000/docs")
+        print(f"📊 Server will be available at: http://{host}:{port}")
+        print(f"📖 API documentation at: http://{host}:{port}/docs")
         print("🔄 Press Ctrl+C to stop the server")
+        
+        # Railway-compatible server configuration
+        is_production = os.getenv("RAILWAY_ENVIRONMENT_NAME") is not None
         
         uvicorn.run(
             "backend.api.main:app",
-            host="0.0.0.0",
-            port=8000,
-            reload=True,
+            host=host,
+            port=port,
+            reload=not is_production,  # Disable reload in production
             log_level="info"
         )
         

@@ -27,7 +27,8 @@ const ScraperControl = () => {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/scraper/status');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_BASE_URL}/api/scraper/status`);
       const data = await response.json();
       setStatus(data);
     } catch (error) {
@@ -40,7 +41,8 @@ const ScraperControl = () => {
     setMessage('');
     
     try {
-      const response = await fetch('http://localhost:8000/api/scraper/start', {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_BASE_URL}/api/scraper/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

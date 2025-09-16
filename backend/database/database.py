@@ -4,11 +4,28 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import os
 
-# Database configuration
+# Database configuration - Railway compatible
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./electricity_data.db")
 
-# Create engine
-engine = create_engine(DATABASE_URL, echo=True)
+# Handle Railway's PostgreSQL URL format (postgres:// -> postgresql://)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Create engine with Railway-optimized settings
+if DATABASE_URL.startswith("postgresql://"):
+    # PostgreSQL configuration for Railway
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,  # Disable echo in production
+        pool_pre_ping=True,
+        pool_recycle=300,
+        connect_args={
+            "sslmode": "require"
+        }
+    )
+else:
+    # SQLite configuration for local development
+    engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
