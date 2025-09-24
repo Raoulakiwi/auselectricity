@@ -18,6 +18,7 @@ async def get_electricity_prices(
     start_date: Optional[datetime] = Query(None, description="Start date for data"),
     end_date: Optional[datetime] = Query(None, description="End date for data"),
     region: Optional[str] = Query(None, description="Filter by region (NSW, VIC, QLD, SA, TAS)"),
+    include_zero: bool = Query(False, description="Include records with zero prices"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(100, ge=1, le=1000, description="Page size"),
     db: Session = Depends(get_db)
@@ -33,6 +34,10 @@ async def get_electricity_prices(
             query = query.filter(ElectricityPrice.timestamp <= end_date)
         if region:
             query = query.filter(ElectricityPrice.region == region)
+        
+        # Exclude zero values by default (unless explicitly requested)
+        if not include_zero:
+            query = query.filter(ElectricityPrice.price > 0)
         
         # Get total count
         total = query.count()
@@ -53,23 +58,40 @@ async def get_electricity_prices(
 
 @router.get("/prices/current")
 async def get_current_prices(db: Session = Depends(get_db)):
-    """Get the most recent electricity prices for all regions"""
+    """Get the most recent electricity prices for all regions (excluding zero values)"""
     try:
-        # Get the latest timestamp
-        latest_timestamp = db.query(ElectricityPrice.timestamp).order_by(
-            ElectricityPrice.timestamp.desc()
-        ).first()
+        # Get the most recent record for each region with non-zero prices
+        from sqlalchemy import func
         
-        if not latest_timestamp:
-            return {"message": "No electricity price data available"}
+        # Subquery to get the latest timestamp for each region with non-zero prices
+        latest_timestamps = db.query(
+            ElectricityPrice.region,
+            func.max(ElectricityPrice.timestamp).label('latest_timestamp')
+        ).filter(
+            ElectricityPrice.price > 0
+        ).group_by(
+            ElectricityPrice.region
+        ).subquery()
         
-        # Get prices for all regions at the latest timestamp
-        prices = db.query(ElectricityPrice).filter(
-            ElectricityPrice.timestamp == latest_timestamp[0]
+        # Get the actual records for each region at their latest timestamp
+        prices = db.query(ElectricityPrice).join(
+            latest_timestamps,
+            (ElectricityPrice.region == latest_timestamps.c.region) &
+            (ElectricityPrice.timestamp == latest_timestamps.c.latest_timestamp)
+        ).filter(
+            ElectricityPrice.price > 0
+        ).order_by(
+            ElectricityPrice.region
         ).all()
         
+        if not prices:
+            return {"message": "No electricity price data available"}
+        
+        # Get the overall latest timestamp for the response
+        latest_timestamp = max(price.timestamp for price in prices)
+        
         return {
-            "timestamp": latest_timestamp[0],
+            "timestamp": latest_timestamp,
             "prices": [ElectricityPriceResponse.model_validate(price) for price in prices]
         }
         

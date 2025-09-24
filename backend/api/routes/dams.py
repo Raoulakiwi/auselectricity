@@ -19,6 +19,7 @@ async def get_dam_levels(
     end_date: Optional[datetime] = Query(None, description="End date for data"),
     state: Optional[str] = Query(None, description="Filter by state"),
     dam_name: Optional[str] = Query(None, description="Filter by dam name"),
+    include_zero: bool = Query(False, description="Include records with zero capacity"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(100, ge=1, le=1000, description="Page size"),
     db: Session = Depends(get_db)
@@ -36,6 +37,10 @@ async def get_dam_levels(
             query = query.filter(DamLevel.state == state)
         if dam_name:
             query = query.filter(DamLevel.dam_name == dam_name)
+        
+        # Exclude zero values by default (unless explicitly requested)
+        if not include_zero:
+            query = query.filter(DamLevel.capacity_percentage > 0)
         
         # Get total count
         total = query.count()
@@ -56,23 +61,44 @@ async def get_dam_levels(
 
 @router.get("/levels/current")
 async def get_current_dam_levels(db: Session = Depends(get_db)):
-    """Get the most recent dam levels for all dams"""
+    """Get the most recent dam levels for all dams (excluding zero values)"""
     try:
-        # Get the latest timestamp
-        latest_timestamp = db.query(DamLevel.timestamp).order_by(
-            DamLevel.timestamp.desc()
-        ).first()
+        # Get the most recent record for each dam with non-zero capacity
+        from sqlalchemy import func
         
-        if not latest_timestamp:
-            return {"message": "No dam level data available"}
+        # Subquery to get the latest timestamp for each dam with non-zero capacity
+        latest_timestamps = db.query(
+            DamLevel.dam_name,
+            DamLevel.state,
+            func.max(DamLevel.timestamp).label('latest_timestamp')
+        ).filter(
+            DamLevel.capacity_percentage > 0
+        ).group_by(
+            DamLevel.dam_name,
+            DamLevel.state
+        ).subquery()
         
-        # Get levels for all dams at the latest timestamp
-        levels = db.query(DamLevel).filter(
-            DamLevel.timestamp == latest_timestamp[0]
+        # Get the actual records for each dam at their latest timestamp
+        levels = db.query(DamLevel).join(
+            latest_timestamps,
+            (DamLevel.dam_name == latest_timestamps.c.dam_name) &
+            (DamLevel.state == latest_timestamps.c.state) &
+            (DamLevel.timestamp == latest_timestamps.c.latest_timestamp)
+        ).filter(
+            DamLevel.capacity_percentage > 0
+        ).order_by(
+            DamLevel.state,
+            DamLevel.dam_name
         ).all()
         
+        if not levels:
+            return {"message": "No dam level data available"}
+        
+        # Get the overall latest timestamp for the response
+        latest_timestamp = max(level.timestamp for level in levels)
+        
         return {
-            "timestamp": latest_timestamp[0],
+            "timestamp": latest_timestamp,
             "dam_levels": [DamLevelResponse.model_validate(level) for level in levels]
         }
         
