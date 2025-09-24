@@ -33,6 +33,11 @@ echo "📦 Installing Node.js and npm..."
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
 
+# Fix file watch limit issue (common on Ubuntu servers)
+echo "🔧 Fixing file watch limit issue..."
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+
 # Verify installations
 echo "✅ Verifying installations..."
 python3 --version
@@ -46,4 +51,20 @@ echo "1. Create virtual environment: python3 -m venv venv"
 echo "2. Activate virtual environment: source venv/bin/activate"
 echo "3. Upgrade pip: python3 -m pip install --upgrade pip"
 echo "4. Install requirements: pip install -r requirements.txt"
-echo "5. Start the application: python start_backend.py"
+echo "5. Install frontend dependencies: cd frontend && npm install"
+echo ""
+echo "Choose your deployment method:"
+echo ""
+echo "🚀 PRODUCTION (Recommended for live server):"
+echo "   chmod +x setup_production.sh && ./setup_production.sh"
+echo "   - Frontend on port 80 (standard web port)"
+echo "   - Nginx reverse proxy"
+echo "   - Production build with optimizations"
+echo ""
+echo "🔧 DEVELOPMENT:"
+echo "   chmod +x install_services.sh && ./install_services.sh"
+echo "   - Frontend on port 3000"
+echo "   - Development mode with hot reload"
+echo ""
+echo "📋 Management commands:"
+echo "   chmod +x manage_services.sh && ./manage_services.sh help"

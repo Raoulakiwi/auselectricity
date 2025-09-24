@@ -1,0 +1,29 @@
+[Unit]
+Description=Australian Electricity Market Dashboard Backend
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/auselectricity
+Environment=PATH=/home/ubuntu/auselectricity/venv/bin
+Environment=UVICORN_RELOAD=false
+Environment=HOST=0.0.0.0
+Environment=PORT=8000
+ExecStart=/home/ubuntu/auselectricity/venv/bin/python start_backend.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/ubuntu/auselectricity
+
+[Install]
+WantedBy=multi-user.target

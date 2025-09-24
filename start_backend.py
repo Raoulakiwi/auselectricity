@@ -30,14 +30,20 @@ def main():
         print(f"📖 API documentation at: http://{host}:{port}/docs")
         print("🔄 Press Ctrl+C to stop the server")
         
-        # Railway-compatible server configuration
+        # Server configuration - disable reload to avoid file watch limit issues
+        reload_enabled = os.getenv("UVICORN_RELOAD", "false").lower() == "true"
         is_production = os.getenv("RAILWAY_ENVIRONMENT_NAME") is not None
+        
+        # Disable reload on servers to avoid "OS file watch limit reached" error
+        if is_production or not reload_enabled:
+            print("🔧 Running in production mode (reload disabled)")
+            reload_enabled = False
         
         uvicorn.run(
             "backend.api.main:app",
             host=host,
             port=port,
-            reload=not is_production,  # Disable reload in production
+            reload=reload_enabled,
             log_level="info"
         )
         

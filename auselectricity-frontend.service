@@ -1,0 +1,30 @@
+[Unit]
+Description=Australian Electricity Market Dashboard Frontend
+After=network.target auselectricity-backend.service
+Wants=network.target
+Requires=auselectricity-backend.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/auselectricity/frontend
+Environment=PATH=/usr/bin:/bin:/usr/local/bin
+Environment=REACT_APP_API_URL=http://localhost:8000
+Environment=GENERATE_SOURCEMAP=false
+Environment=PORT=80
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/ubuntu/auselectricity/frontend
+
+[Install]
+WantedBy=multi-user.target
