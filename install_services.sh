@@ -100,3 +100,5 @@ echo "🌐 Your application should be available at:"
 echo "  Backend API:  http://$(curl -s ifconfig.me):8000"
 echo "  Frontend:     http://$(curl -s ifconfig.me):3000"
 echo "  API Docs:     http://$(curl -s ifconfig.me):8000/docs"
+
+

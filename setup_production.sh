@@ -133,3 +133,5 @@ echo ""
 echo "🔧 To rebuild frontend after changes:"
 echo "  cd frontend && npm run build"
 echo "  sudo systemctl restart nginx"
+
+

@@ -1,1 +1,67 @@
-/node_modules
+# Dependencies
+node_modules/
+frontend/node_modules/
+*/node_modules/
+**/node_modules/
+
+# Python
+venv/
+env/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+electricity_data.db
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# React build
+frontend/build/
+frontend/.eslintcache
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# Temporary files
+temp/
+tmp/
+temp_nemosis_data/
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Service files (will be configured per server)
+*.service.bak

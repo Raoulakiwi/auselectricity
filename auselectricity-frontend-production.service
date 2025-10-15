@@ -26,3 +26,5 @@ ReadWritePaths=/home/ubuntu/auselectricity/frontend
 
 [Install]
 WantedBy=multi-user.target
+
+
