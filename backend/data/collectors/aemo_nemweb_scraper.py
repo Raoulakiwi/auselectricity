@@ -28,25 +28,38 @@ class AEMONEMWebScraper:
         })
     
     def get_latest_dispatch_files(self, limit=3):
-        """Get the latest dispatch file URLs"""
+        """Get the latest dispatch file URLs by scraping the directory"""
         
-        # For now, we'll use a known recent file pattern
-        # In production, this would scrape the directory listing
-        now = datetime.now()
+        import re
         
-        # Generate recent file names (they follow a pattern)
-        recent_files = []
-        for i in range(limit):
-            # Files are typically 5 minutes apart
-            file_time = now - timedelta(minutes=i*5)
-            timestamp = file_time.strftime('%Y%m%d%H%M')
+        try:
+            # Fetch the directory listing page
+            response = self.session.get(self.base_url, timeout=30)
+            response.raise_for_status()
             
-            # This is a simplified approach - in reality we'd need to scrape the directory
-            # For now, we'll use a known working file
-            if i == 0:
-                recent_files.append("PUBLIC_DISPATCHIS_202509111655_0000000480215212.zip")
-        
-        return [self.base_url + f for f in recent_files]
+            # Extract file links - pattern: PUBLIC_DISPATCHIS_YYYYMMDDHHMM_*.zip
+            pattern = r'(PUBLIC_DISPATCHIS_\d{12}_\d+\.zip)'
+            matches = re.findall(pattern, response.text)
+            
+            if matches:
+                # Get unique filenames and sort by timestamp (newest first)
+                unique_files = list(set(matches))
+                unique_files.sort(reverse=True)
+                
+                # Return full URLs for the latest files
+                file_urls = [self.base_url + f for f in unique_files[:limit]]
+                logger.info(f"Found {len(unique_files)} dispatch files, using latest: {unique_files[:limit]}")
+                return file_urls
+            
+            logger.warning("No dispatch files found in directory listing")
+            return []
+            
+        except Exception as e:
+            logger.error(f"Error fetching directory listing: {e}")
+            # Fallback: try to use current time to construct likely filename
+            now = datetime.now()
+            filename = now.strftime('PUBLIC_DISPATCHIS_%Y%m%d%H%M_0000000.zip')
+            return [self.base_url + filename]
     
     def download_and_extract_file(self, url):
         """Download and extract a NEMWeb ZIP file"""

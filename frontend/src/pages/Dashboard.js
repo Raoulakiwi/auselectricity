@@ -5,7 +5,6 @@ import axios from 'axios';
 import PriceChart from '../components/PriceChart';
 import DamLevelChart from '../components/DamLevelChart';
 import MetricCard from '../components/MetricCard';
-import ScraperControl from '../components/ScraperControl';
 import { getSourceInfo, getDamUrl } from '../data/sources';
 
 const Dashboard = () => {
@@ -113,12 +112,9 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      {/* Data Collection Control */}
+      {/* Quick Stats */}
       <Row className="mb-4">
-        <Col lg={6}>
-          <ScraperControl />
-        </Col>
-        <Col lg={6}>
+        <Col lg={12}>
           <Card className="dashboard-card">
             <Card.Header>Quick Stats</Card.Header>
             <Card.Body>

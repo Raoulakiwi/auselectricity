@@ -65,3 +65,9 @@ Thumbs.db
 
 # Service files (will be configured per server)
 *.service.bak
+*.db
+frontend/build/
+venv/
+__pycache__/
+*.pyc
+.env
