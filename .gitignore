@@ -71,3 +71,6 @@ venv/
 __pycache__/
 *.pyc
 .env
+
+# Claude factory verification output (uploaded as CI artifacts)
+factory-proof/
